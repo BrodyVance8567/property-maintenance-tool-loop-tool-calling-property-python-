@@ -1,0 +1,1 @@
+"""Property maintenance automation example."""
