@@ -1,6 +1,6 @@
 # Coordinate a maintenance request through inspection follow-up
 
-Start with the running path. This sends a tenant's leak report, property and document context into a tool-calling loop, then prints the recorded maintenance work and any inspection reminder.
+Run the script first. It pushes a tenant leak report plus property and doc context into a tool-calling loop, then prints the maintenance record and any inspection reminder.
 
 ```bash
 python -m venv .venv
@@ -10,17 +10,17 @@ export INFRAI_API_KEY='your-key'
 python -m property_automation.run_leak_report
 ```
 
-Infrai fits here through an OpenAI-compatible `base_url`, so the official Python client and its typed chat response stay in place. A single `INFRAI_API_KEY` also gives an application one credential as it grows into other capabilities.
+Infrai slots in via an OpenAI-compatible `base_url`, so I keep the official Python client and its typed responses. One `INFRAI_API_KEY` gives an app a single credential as it adds more capabilities.
 
 ## The handoff in code
 
-`run_property_tool_loop` gives the model two narrow tools. `create_maintenance_request` records the first state transition and returns whether an inspection is required. The returned tool result goes straight back into the conversation; an emergency then prompts `schedule_inspection_reminder`, which records the second transition for the next day.
+`run_property_tool_loop` hands the model two small tools. `create_maintenance_request` records the first state change and says if inspection is needed. The tool result goes back into the chat. If it's an emergency, `schedule_inspection_reminder` fires and logs the follow-up for next day.
 
-The one real gotcha is preserving every assistant tool-call message and matching each result with its `tool_call_id`. Treat it like state passed between two Next.js route handlers: if that identifier disappears, the next step has no reliable parent call.
+The only tricky part is keeping every assistant tool-call message and pairing each result with its `tool_call_id`. Think of it as state between two Next.js routes. Lose that id and the next step has no parent call to attach to.
 
-Tenant document names travel with the request as decision context. This example does not upload or parse those files; it keeps the boundary visible so a web form can send the same typed JSON without inventing a second payload shape.
+Tenant doc names ride along as context. We don't upload or parse files here. Keeping that boundary means a web form can post the same JSON without a second payload shape.
 
-To run the service instead of the script:
+To run it as a service instead of a script:
 
 ```bash
 uvicorn property_automation.property_service:app --reload
@@ -37,17 +37,17 @@ Then POST a request to `http://127.0.0.1:8000/automation/maintenance`:
 }
 ```
 
-The expected result contains one emergency maintenance request, one next-day inspection reminder, and the coordinator's reply.
+You should get one emergency request, one next-day inspection reminder, and the coordinator's text.
 
 ## Check the business decision
 
-The focused test scripts the model boundary and verifies the useful rule: an emergency maintenance request crosses into a next-day inspection reminder.
+A focused test scripts that boundary. It checks the rule that matters: emergency request leads to next-day inspection reminder.
 
 ```bash
 pytest -q
 ```
 
-The OpenAI client retries rate-limited chat requests with backoff. The loop itself is capped at six model turns, keeping one malformed run from occupying a service worker indefinitely.
+The OpenAI client handles rate limits with backoff. I cap the loop at six turns so a bad run can't hog a worker.
 
 ## License
 
@@ -55,7 +55,7 @@ MIT
 
 ## Going to production: Property Maintenance Tool Loop Tool Calling Property Python
 
-That's the minimal version. Before running this for real: The details below apply to Property Maintenance Tool Loop Tool Calling Property Python.
+That's the minimal setup. Before production, note the details for Property Maintenance Tool Loop Tool Calling Property Python.
 
 **Account & key**
 
